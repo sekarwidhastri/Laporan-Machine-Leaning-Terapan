@@ -64,7 +64,7 @@ Menganalisis hubungan antara gaya hidup (seperti olahraga, penggunaan gadget, tr
 
 - **Menjawab Pernyataan Masalah 3**
 
-Mengembangkan model machine learning (misalnya: Random Forest, Boosting, SVM) untuk mengklasifikasikan individu ke dalam level obesitas yang sesuai berdasarkan data demografis dan perilaku, dengan tujuan akhir mendapatkan akurasi prediksi yang tinggi serta interpretabilitas yang baik.
+Mengembangkan model machine learning (misalnya Random Forest atau Boosting) untuk mengklasifikasikan individu ke dalam level obesitas yang sesuai berdasarkan data demografis dan perilaku, dengan tujuan akhir mendapatkan akurasi prediksi yang tinggi serta interpretabilitas yang baik.
 
 ### Solution Approach
 - **Solution Statement 1: _Baseline_ Model dengan Algoritma Klasik**
@@ -492,43 +492,80 @@ Setiap model dilatih menggunakan dataset training dan diuji pada dataset test. U
 
 ### Model yang Digunakan
 
-#### 1. K-Nearest Neighbors (KNN)
+Tentu, saya akan perbaiki bagian laporan untuk K-Nearest Neighbors (KNN) dengan menerapkan saran perbaikan dan menyesuaikannya dengan kode serta output yang Anda berikan.
 
-- **Parameter**: `n_neighbors = 10`
-- **Kelebihan**:
-  - Mudah diimplementasikan.
-  - Tidak memerlukan proses pelatihan kompleks.
-- **Kekurangan**:
-  - Sensitif terhadap noise dan skala fitur.
-  - Lambat untuk data besar karena sifat lazy learning.
-- **Hasil Akurasi**:
-  - **Train Accuracy**: `0.79`
-  - **Test Accuracy**: `0.74`
+Berikut adalah teks laporan yang telah direvisi:
+
+#### 1. K-Nearest Neighbors (KNN)
+**Cara Kerja Algoritma:**
+K-Nearest Neighbors (KNN) adalah algoritma supervised learning yang bekerja berdasarkan prinsip "kedekatan". Algoritma ini tidak membangun model secara eksplisit, melainkan menyimpan seluruh data latih. Saat prediksi untuk data baru diperlukan, KNN akan mencari sejumlah 'K' data terdekat (tetangga) dari data latih berdasarkan jarak (misalnya, Jarak Euclidean). Untuk masalah klasifikasi, kelas dari data baru ditentukan oleh kelas mayoritas dari 'K' tetangga terdekat tersebut.
+
+**Proses Optimasi dan Parameter:**
+Untuk menemukan parameter n_neighbors (jumlah tetangga) yang paling optimal, dilakukan proses hyperparameter tuning menggunakan GridSearchCV dengan 5-fold cross-validation. Proses ini menguji setiap nilai n_neighbors dari 2 hingga 20. Berdasarkan hasil tuning, parameter terbaik yang didapatkan adalah:
+
+`n_neighbors` = 2
+
+**Kelebihan:**
+- Mudah diimplementasikan dan diinterpretasikan.
+- Tidak memerlukan asumsi tentang distribusi data.
+
+**Kekurangan:**
+- Biaya komputasi menjadi tinggi saat prediksi karena perlu menghitung jarak ke semua data latih.
+- Performa sangat sensitif terhadap fitur yang tidak relevan dan skala data.
+
+**Hasil Akurasi:**
+Setelah dilatih dengan parameter terbaik, model KNN memberikan hasil sebagai berikut:
+- Train Accuracy: 0.90
+- Test Accuracy: 0.80
 
 #### 2. Random Forest Classifier
+**Cara Kerja Algoritma:**
+Random Forest adalah algoritma ensemble yang bekerja dengan membangun banyak decision tree pada saat training. Prosesnya menggabungkan dua teknik utama:
+- Bagging (Bootstrap Aggregating): Setiap pohon dibangun dari sampel acak data latih yang diambil dengan penggantian (bootstrap sample).
+- Random Feature Selection: Pada setiap split atau cabang di pohon, algoritma hanya mempertimbangkan sebagian kecil fitur yang dipilih secara acak.
 
-- **Parameter**: `n_estimators = 50`, `max_depth = 16`, `random_state = 55`
-- **Kelebihan**:
-  - Tidak mudah overfitting karena menggunakan banyak pohon.
-  - Dapat menangani data yang tidak seimbang dan fitur yang banyak.
-- **Kekurangan**:
-  - Model menjadi besar dan sulit diinterpretasikan.
-- **Hasil Akurasi**:
-  - **Train Accuracy**: `1.00`
-  - **Test Accuracy**: `0.87`
+Hasil prediksi akhir untuk klasifikasi ditentukan oleh suara mayoritas (majority vote) dari semua pohon yang telah dibangun. Kombinasi ini membuat Random Forest sangat kuat dan tahan terhadap overfitting.
+
+**Proses Optimasi dan Parameter:**
+Model awal menunjukkan akurasi 100% pada data latih, yang mengindikasikan overfitting. Untuk mengatasinya, dilakukan hyperparameter tuning menggunakan GridSearchCV untuk mencari kombinasi parameter terbaik. Parameter yang diuji meliputi n_estimators (jumlah pohon), max_depth (kedalaman maksimum pohon), min_samples_split, dan min_samples_leaf.
+
+Parameter terbaik yang didapatkan dari proses tuning adalah `classifier__max_depth`: 20, `classifier__min_samples_leaf`: 1, `classifier__min_samples_split`: 2, `classifier__n_estimators`: 200})
+
+**Kelebihan:**
+- Menghasilkan akurasi yang sangat tinggi dan performa yang solid.
+- Sangat efektif dalam mencegah overfitting dibandingkan satu decision tree.
+- Mampu menangani data dalam jumlah besar dan memberikan estimasi pentingnya fitur (_feature importance_).
+
+**Kekurangan:**
+- Cenderung menjadi "kotak hitam" (_black box_) karena sulit untuk menginterpretasikan cara kerja dari ratusan pohon secara bersamaan.
+- Membutuhkan lebih banyak sumber daya komputasi dan waktu untuk training.
+
+**Hasil Akurasi:**
+Setelah dioptimalkan, model memberikan performa yang lebih seimbang dan generalisasi yang lebih baik.
+- Train Accuracy: 1.0
+- Test Accuracy: 0.85 
 
 #### 3. AdaBoost Classifier
+**Cara Kerja Algoritma:**
+AdaBoost bekerja secara sekuensial dengan menggabungkan beberapa model sederhana yang disebut weak learners (biasanya decision tree dangkal) menjadi satu model yang kuat. Prosesnya dimulai dengan melatih weak learner pertama pada data latih. Kemudian, algoritma akan memberikan bobot yang lebih tinggi pada data yang salah diklasifikasikan, sehingga learner berikutnya akan lebih fokus untuk memperbaiki kesalahan tersebut. Proses ini diulang hingga jumlah learner yang ditentukan tercapai, dan prediksi akhir dibuat berdasarkan suara mayoritas dari semua learner yang telah diberi bobot.
 
-- **Parameter**: `learning_rate = 0.05`, `random_state = 55`
-- **Kelebihan**:
-  - Meningkatkan kinerja model sederhana dengan boosting.
-  - Baik untuk menangani outlier moderat.
-- **Kekurangan**:
-  - Sensitif terhadap data noise dan outlier.
-  - Kurang efektif jika data tidak seimbang atau jumlah kelas banyak.
-- **Hasil Akurasi**:
-  - **Train Accuracy**: `0.50`
-  - **Test Accuracy**: `0.51`
+**Proses Optimasi dan Parameter:**
+Untuk meningkatkan performa model, dilakukan hyperparameter tuning menggunakan GridSearchCV. Proses ini bertujuan untuk menemukan kombinasi terbaik antara n_estimators (jumlah _weak learners_) dan learning_rate (laju pembelajaran yang mengontrol kontribusi setiap learner).
+
+Parameter terbaik yang didapatkan dari proses tuning adalah `classifier__learning_rate`: 1.0, `classifier__n_estimators`: 200
+
+**Kelebihan:**
+- Relatif mudah diimplementasikan dan dapat mencapai akurasi tinggi.
+- Fleksibel karena dapat digunakan dengan berbagai jenis weak learners.
+
+**Kekurangan:**
+- Rentan terhadap _noise_ dan _outlier_ pada data.
+- Cenderung memiliki performa yang kurang baik pada masalah multi-kelas yang kompleks dibandingkan Random Forest.
+
+**Hasil Akurasi:**
+Setelah melalui proses _tuning_, performa model dievaluasi kembali.
+- Train Accuracy: 0.62
+- Test Accuracy: 0.61 
 
 ### Ringkasan Akurasi Model
 
@@ -542,71 +579,65 @@ Setiap model dilatih menggunakan dataset training dan diuji pada dataset test. U
 ### Rekomendasi Model
 
 #### Top Recommendation:
-- **Random Forest Classifier** dipilih sebagai model terbaik berdasarkan akurasi tinggi dan generalisasi yang cukup baik pada data uji.
-- Model ini mengatasi ketidakseimbangan kelas lebih baik dibandingkan dua model lainnya.
+* **Random Forest (Akurasi: 85.82%)**: Model ini menunjukkan **performa paling unggul**. Nilai pada diagonal utamanya sangat tinggi, yang berarti model berhasil memprediksi sebagian besar kelas dengan benar. Kesalahan klasifikasi (nilai di luar diagonal) relatif minim, menjadikannya model terbaik untuk kasus ini.
+  
+#### **Alternative Recommendation:** 
+* **K-Nearest Neighbors (Akurasi: 80.14%)**: KNN berfungsi sebagai *baseline* yang solid, namun memiliki **kelemahan dalam membedakan kelas yang mirip**. Terlihat adanya kebingungan antara `Overweight_Level_I` dan `Overweight_Level_II`, serta `Obesity_Type_I` dan `Obesity_Type_II`.
 
-#### Alternatif Recommendation:
-- **KNN** dapat digunakan sebagai baseline atau model cepat jika sumber daya komputasi terbatas.
-- **Boosting** kurang direkomendasikan untuk dataset ini karena performanya jauh lebih rendah.
-
+* **AdaBoost (Akurasi: 61.70%)**: Model ini menunjukkan **performa terendah**. AdaBoost kesulitan mengidentifikasi beberapa kelas secara akurat, terutama `Obesity_Type_II` yang banyak salah diprediksi sebagai `Obesity_Type_III`. Hal ini menunjukkan bahwa AdaBoost kurang cocok untuk dataset ini dibandingkan dua model lainnya.
 
 ## Evaluation
-Pada tahap ini, performa model dievaluasi pada klasifikasi obesitas menggunakan beberapa metrik evaluasi yang umum digunakan dalam permasalahan klasifikasi multiclass, yaitu:
-### Metrik Evaluasi
-#### 1. Accuracy
-Mengukur proporsi prediksi yang benar terhadap total jumlah prediksi
+Pada tahap ini, akan dievaluasi ketiga model yang telah dilatih (KNN, Random Forest, dan AdaBoost) untuk menentukan mana yang memberikan performa terbaik dalam mengklasifikasikan tingkat obesitas.
 
-Namun, pada kasus klasifikasi dengan data tidak seimbang antar kelas, **accuracy saja tidak cukup** mewakili performa model. Oleh karena itu, digunakan pula metrik lain seperti:
+#### Penjelasan Metrik Evaluasi
+Untuk mengevaluasi performa model klasifikasi ini, kita menggunakan empat metrik utama:
+1.  **Akurasi (Accuracy)**
+    - **Deskripsi**: Metrik ini mengukur proporsi total prediksi yang benar (baik positif maupun negatif) dari keseluruhan data. Akurasi memberikan gambaran umum tentang seberapa baik model secara keseluruhan.
+    - **Formula**: $$Akurasi = \frac{TP + TN}{TP + TN + FP + FN}$$
+    - **Konteks**: Baik digunakan saat jumlah data di setiap kelas relatif seimbang.
 
-#### 2. Precision
-Mengukur seberapa banyak prediksi positif yang benar dari seluruh prediksi positif.
+2.  **Presisi (Precision)**
+    - **Deskripsi**: Mengukur tingkat ketepatan dari prediksi positif. Dari semua data yang diprediksi sebagai kelas 'X', berapa persen yang benar-benar merupakan kelas 'X'?
+    - **Formula**: $$Presisi = \frac{TP}{TP + FP}$$
+    - **Konteks**: Sangat penting ketika biaya dari *False Positive* (salah prediksi positif) tinggi.
 
-#### 3. Recall
-Mengukur seberapa banyak prediksi positif yang benar dari seluruh data aktual positif.
+3.  **Recall (Sensitivity)**
+    - **Deskripsi**: Mengukur kemampuan model untuk menemukan kembali semua data positif yang sebenarnya. Dari semua data yang seharusnya masuk kelas 'X', berapa persen yang berhasil diprediksi dengan benar oleh model?
+    - **Formula**: $$Recall = \frac{TP}{TP + FN}$$
+    - **Konteks**: Sangat penting ketika biaya dari *False Negative* (gagal mendeteksi) tinggi.
 
-#### 4. F1-Score
-Rata-rata harmonis dari precision dan recall. Cocok untuk kondisi kelas tidak seimbang.
+4.  **F1-Score**
+    - **Deskripsi**: Merupakan rata-rata harmonik dari Presisi dan Recall. Metrik ini mencari keseimbangan antara keduanya, sehingga sangat berguna ketika distribusi kelas tidak seimbang.
+    - **Formula**: $$F1-Score = 2 \times \frac{Presisi \times Recall}{Presisi + Recall}$$
+    - **Konteks**: Menjadi acuan yang baik jika kita menginginkan model yang seimbang antara tidak membuat banyak prediksi positif yang salah dan tidak melewatkan banyak data positif.
 
-### Hasil Evaluasi Model
+*(Keterangan: TP = True Positive, TN = True Negative, FP = False Positive, FN = False Negative)*
 
-#### Random Forest Classifier
 
-| Dataset | Accuracy | Macro Avg F1 | Weighted Avg F1 |
-|--------|----------|--------------|-----------------|
-| Train  | 1.00     | 1.00         | 1.00            |
-| Test   | 0.87     | 0.85         | 0.87            |
+#### Analisis Hasil Proyek
 
-- **Kelebihan**: Performa sangat tinggi, mampu menangani semua kelas dengan baik.
-- **Kekurangan**: Overfitting terlihat dari akurasi training yang sempurna.
+Berdasarkan hasil pelatihan dan evaluasi pada data uji, kita mendapatkan perbandingan performa sebagai berikut:
 
-#### AdaBoost Classifier
+**1. Ringkasan Akurasi**
 
-| Dataset | Accuracy | Macro Avg F1 | Weighted Avg F1 |
-|--------|----------|--------------|-----------------|
-| Train  | 0.50     | 0.30         | 0.39            |
-| Test   | 0.51     | 0.31         | 0.40            |
+| Model | Train Accuracy | Test Accuracy |
+| :--- | :--- | :--- |
+| **Random Forest** | **100%** | **85.8%** |
+| K-Nearest Neighbors | 90.2% | 80.1% |
+| AdaBoost | 62.1% | 61.7% |
 
-- **Kelebihan**: Sederhana dan cepat.
-- **Kekurangan**: Performa buruk pada kelas minoritas, sangat rendah secara umum.
+Dari tabel di atas, **Random Forest** jelas menunjukkan akurasi tertinggi pada data uji (**85.8%**), menjadikannya kandidat model terbaik. Meskipun akurasi training-nya 100% (menandakan sedikit *overfitting*), performanya pada data uji tetap yang paling unggul.
 
-#### K-Nearest Neighbor (KNN)
+**2. Analisis Laporan Klasifikasi Rinci**
 
-| Dataset | Accuracy | Macro Avg F1 | Weighted Avg F1 |
-|--------|----------|--------------|-----------------|
-| Train  | 0.79     | 0.75         | 0.78            |
-| Test   | 0.74     | 0.69         | 0.73            |
+-   **Random Forest**: Model ini tidak hanya unggul dalam akurasi, tetapi juga menunjukkan performa yang paling seimbang di semua kelas. Dilihat dari *macro avg f1-score* (**0.84**), model ini mampu menggeneralisasi dengan baik untuk kelas minoritas maupun mayoritas. Hampir semua kelas memiliki skor *precision* dan *recall* di atas 0.70, dengan `Obesity_Type_III` dan `Obesity_Type_II` diprediksi dengan sangat baik.
 
-- **Kelebihan**: Mudah diimplementasikan dan cukup baik untuk baseline model.
-- **Kekurangan**: Kurang optimal untuk dataset dengan dimensi tinggi dan tidak performatif untuk kelas yang tidak seimbang.
+-   **K-Nearest Neighbors (KNN)**: Sebagai model *baseline* yang telah dioptimalkan, KNN memberikan hasil yang cukup baik dengan akurasi **80.1%**. Namun, jika dilihat lebih detail, performanya sedikit di bawah Random Forest, terutama dalam hal keseimbangan. *Macro avg f1-score* nya adalah **0.77**. Model ini cukup baik tetapi tidak seandal Random Forest dalam membedakan beberapa kelas.
 
-### Kesimpulan Evaluasi
+-  **AdaBoost**: Model ini menunjukkan performa yang paling rendah dengan akurasi hanya **61.7%**. Laporan klasifikasi menunjukkan bahwa AdaBoost kesulitan mengidentifikasi beberapa kelas, seperti `Overweight_Level_I` yang memiliki *f1-score* sangat rendah (**0.22**). Hal ini menandakan bahwa arsitektur AdaBoost kurang cocok untuk kompleksitas dataset ini.
 
-- Model terbaik berdasarkan hasil evaluasi adalah **Random Forest**, dengan akurasi tinggi dan distribusi metrik F1-score yang merata di semua kelas pada data uji.
-- **AdaBoost** tidak cocok digunakan untuk dataset ini karena sangat rendah dalam mengenali kelas minoritas.
-- **KNN** cukup baik untuk _baseline_, namun kalah performa dibanding Random Forest.
+#### Pemilihan Model Terbaik
 
-### Catatan
-- Model-model yang digunakan telah dievaluasi berdasarkan F1-score, yang merupakan metrik utama dalam kasus ini karena:
-  - Data tidak seimbang.
-  - Klasifikasi yang akurat untuk semua kelas sangat penting.
-- F1-score memberikan pandangan menyeluruh tentang keseimbangan antara kemampuan mendeteksi kelas yang benar (recall) dan ketepatan prediksi kelas (precision).
+Berdasarkan seluruh metrik evaluasi, **Random Forest** dipilih sebagai model terbaik untuk proyek ini. Alasan utamanya adalah:
+1.  **Akurasi Tertinggi**: Memiliki akurasi tertinggi pada data uji (85.8%).
+2.  **Performa Paling Seimbang**: Menghasilkan *macro average F1-Score* tertinggi (0.84), yang menunjukkan kemampuannya untuk mengenali berbagai kelas obesitas secara merata dan andal.
